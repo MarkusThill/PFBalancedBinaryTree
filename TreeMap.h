@@ -14,9 +14,9 @@ typedef unsigned long UL;
 
 //typedef struct TreeNode TreeNode;
 typedef struct TreeNode {
+    char key[MAX_KEYLENGTH + 1];
     UL left;
     UL right;
-    char key[MAX_KEYLENGTH + 1];
     int height;
     char value; // This has to be specified properly in the User-defined struct
 } TreeNode;
@@ -39,7 +39,9 @@ void tm_insert(TreeMap *tm, char *key, void *value);
 
 void tm_delete(TreeMap *tm, char *key);
 
-void tm_initTreeNodePool(TreeMap *tm, void *ptr, size_t size);
+size_t tm_estimateRequiredBytes(size_t nodeSize, int numNodes);
+
+void tm_initTreeNodePool(TreeMap *tm, void *ptr, size_t size, size_t sizeSingleNode);
 
 int tm_poolExhausted(TreeMap *tm);
 

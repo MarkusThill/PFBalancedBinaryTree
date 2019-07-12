@@ -8,21 +8,28 @@
 #include <stdlib.h>
 #include <string.h>
 #include "TreeMap.h"
-#include "sclog4c.h"
-#include "serverUtils.h"
 
 int tm_poolExhausted(TreeMap *tm) {
     // the first node is always used as entry point into the Tree-Node pool (right) and root node of the actual tree (left)
     return tm->treeNodePool[0].right == 0;
 }
 
-void tm_initTreeNodePool(TreeMap *tm, void *ptr, size_t size) {
-    tm->treeNodePool = ptr;
+/*
+ * Estimate the number of bytes required, to initialize a binary balanced tree with a capacity of numNodes. Since the
+ * user nodes are wrapped into some internal nodes, we need slightly more bytes than one might expect.
+ */
+size_t tm_estimateRequiredBytes(size_t nodeSize, int numNodes) {
+    // +1, because the first node is misused as a pointer to the Node-pool and the actual binary tree
+    return (sizeof(TreeNode) - sizeof(char) + nodeSize) * (numNodes +1);
+}
 
+void tm_initTreeNodePool(TreeMap *tm, void *ptr, size_t size, size_t sizeSingleNode) {
+    tm->treeNodePool = ptr;
+    tm->value_size = sizeSingleNode;
     memset(tm->treeNodePool, 0, size); // zero everyting
 
     tm->size_treeNodePool = (unsigned int) (size / sizeOfNode(tm));
-    logm(SL4C_INFO, "The tree-node pool has %d elements.", tm->size_treeNodePool);
+    printf("The tree-node pool has %d elements.", tm->size_treeNodePool-1); // -1, because the first node cannot be really used
 
     // Initially, just build a linked list out of all elements in the array
     // If we need a node for the tree, just extract this node from the linked list
@@ -56,11 +63,14 @@ void tm_initTreeNodePool(TreeMap *tm, void *ptr, size_t size) {
  */
 void tm_resizeTreeNodePool(TreeMap *tm, void *new_ptr, size_t new_size, int re_init) {
     if (new_ptr != tm->treeNodePool) {
-        logm(SL4C_INFO, "Address of the Tree-Node pool changed!");
+        printf("Address of the Tree-Node pool changed!");
     }
     size_t old_size = tm->size_treeNodePool * sizeOfNode(tm);
     size_t diff = (new_size - old_size);
-    if (diff <= 0) printErrorAndDie("Reducing the size of the shared memory not supported yet!"); //exits
+    if (diff <= 0) {
+        printf("Reducing the size of the shared memory not supported yet!");
+        return;
+    }
 
     // Number of new nodes added to the pool
     int num_new_nodes = (int) diff / sizeOfNode(tm);
@@ -85,9 +95,12 @@ void tm_resizeTreeNodePool(TreeMap *tm, void *new_ptr, size_t new_size, int re_i
     }
     // This is the new size of our tree-node pool
     tm->size_treeNodePool += num_new_nodes;
-    logm(SL4C_INFO, "The tree-node pool has now %d elements", tm->size_treeNodePool);
+    printf("The tree-node pool has now %d elements", tm->size_treeNodePool);
 }
 
+/*
+ * Find a key in the tree and return the corresponding value. If not found, return NULL.
+ */
 void *tm_getValue(TreeMap *tm, char *key, void *value) {
     UL *root = &tm->treeNodePool[0].left;
     return IgetTreeNodeValue(tm, *root, key, value);
@@ -111,11 +124,13 @@ void tm_delete(TreeMap *tm, char *key) {
 
 int tm_getHeight(TreeMap *tm) {
     UL *root = &tm->treeNodePool[0].left;
+    if(*root == 0) return 0;
     return IgetTreeNodeHeight(tm, *root);
 }
 
 int tm_countNodes(TreeMap *tm) {
     UL *root = &tm->treeNodePool[0].left;
+    if(*root == 0) return 0;
     return IcountTreeNodes(tm, *root);
 }
 
@@ -144,7 +159,7 @@ static TreeNode *ab(TreeMap *tm, UL rel) {
 
 static UL IgetNodeFromPool(TreeMap *tm) {
     if (tm->treeNodePool[0].right == 0) {
-        logm(SL4C_ERROR, "Node Pool exhausted");
+        printf( "Node Pool exhausted");
         return 0;
     }
 
@@ -354,7 +369,7 @@ static UL IdeleteTreeNode(TreeMap *tm, UL n, char *key) {
             strcpy(ab(tm, n)->key, ab(tm, min)->key);
             memcpy(&(ab(tm, n)->value), &(ab(tm, min)->value), tm->value_size);
 
-            // Now we have to find min in the right sub-tree again and delete it. We will end up in the if-clause above this else...
+            // Now we have to find min in the right sub-tree again and delete it. We will end up in the if-clause above this otherwise...
             ab(tm, n)->right = IdeleteTreeNode(tm, ab(tm, n)->right, ab(tm, min)->key);
         }
     }
