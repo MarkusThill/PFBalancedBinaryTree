@@ -9,7 +9,8 @@ Such an approach has several implications (advantages):
 - The binary tree can be written to (read from) the hard-drive without any further processing steps
 - The tree can insert any user-specified structs (of one type) as nodes without any difficult adjustments by the programmer
 
-
+### Structure
+![Structure](https://github.com/MarkusThill/PFBalancedBinaryTree/blob/master/rsc/structure.png "Structure")
 
 ## Getting started
 To run the example code, follow the following steps:
