@@ -1,8 +1,6 @@
 //
 // Created by Markus Thill on 2019-03-23.
 //
-//#include "itserver.h" // for struct CLientInfo
-
 #ifndef BS1_TREEMAP_H
 #define BS1_TREEMAP_H
 

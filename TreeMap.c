@@ -1,7 +1,7 @@
 //
 // Created by Markus Thill on 2019-03-23
 // A balanced binary tree implementation for shared memories. Since no pointers with absolute addresses are stored in
-// the data structure, the tree can be copied to arbritrary memory segments without problems and can also be used for
+// the data structure, the tree can be copied to arbitrary memory segments without problems and can also be used for
 // resizable shared memory implementations, where the base-address might change after resizing.
 //
 #include <stdio.h>
