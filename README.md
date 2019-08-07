@@ -1,5 +1,5 @@
-# PFBalancedBinaryTree
-A pointer-free balanced binary tree in C.
+# Pointer-free Balanced Binary Trees
+An implementation of a pointer-free balanced binary tree in C.
 
 ## Overview
 This project realizes an implementation of a balanced binary tree in C which is completely pointer-free.
